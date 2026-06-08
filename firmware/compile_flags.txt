@@ -1,0 +1,29 @@
+-xc++
+-std=gnu++17
+-DARDUINO=10819
+-DARDUINO_ESP32_DEV
+-DARDUINO_ARCH_ESP32
+-DF_CPU=240000000L
+-DESP32
+-Wno-unknown-pragmas
+-Wno-unused-parameter
+
+# === Arduino ESP32 Core ===
+-I/Users/andibahdar/Library/Arduino15/packages/esp32/hardware/esp32/3.3.8/cores/esp32
+-I/Users/andibahdar/Library/Arduino15/packages/esp32/hardware/esp32/3.3.8/variants/esp32
+
+# === Arduino ESP32 Built-in Libraries ===
+-I/Users/andibahdar/Library/Arduino15/packages/esp32/hardware/esp32/3.3.8/libraries/WiFi/src
+-I/Users/andibahdar/Library/Arduino15/packages/esp32/hardware/esp32/3.3.8/libraries/Wire/src
+-I/Users/andibahdar/Library/Arduino15/packages/esp32/hardware/esp32/3.3.8/libraries/SPI/src
+
+# === ESP32 SDK (ESP-IDF) — top-level include ===
+-I/Users/andibahdar/Library/Arduino15/packages/esp32/tools/esp32-libs/3.3.8/include
+
+# === FreeRTOS headers ===
+-I/Users/andibahdar/Library/Arduino15/packages/esp32/tools/esp32-libs/3.3.8/include/freertos/FreeRTOS-Kernel/include
+-I/Users/andibahdar/Library/Arduino15/packages/esp32/tools/esp32-libs/3.3.8/include/freertos/config/xtensa/include
+-I/Users/andibahdar/Library/Arduino15/packages/esp32/tools/esp32-libs/3.3.8/include/freertos/config/include
+
+# === User Libraries ===
+-I/Users/andibahdar/Documents/Arduino/libraries/SDI-12/src

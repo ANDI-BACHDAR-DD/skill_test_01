@@ -1,0 +1,63 @@
+# ============================================================
+#  CIMES – Git Ignore Configuration
+# ============================================================
+
+# macOS System Files
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+
+
+# Python (Virtual Environments, Cache, Compiled Files)
+**/venv/
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.pytest_cache/
+.coverage
+htmlcov/
+
+
+# Secrets & Configurations (CRITICAL: Do not upload credentials)
+**/.env
+**/.env.local
+**/.env.*
+*.pem
+*.key
+*.cert
+
+
+# Logs & Database Files
+**/*.log
+**/cimes_bridge.log
+database/pgdata/
+*.db
+*.sqlite3
+
+
+# IDEs & Editor Configuration
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+*~
+
+
+# Compiled Firmware / Arduino Build Artifacts
+**/build/
+**/bin/
+**/out/
+*.hex
+*.bin
+*.elf

@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CIMES – Chili Intelligent Monitoring and Environmental Sensing System</title>
+  <meta name="description" content="CIMES: Local-first IoT dashboard for Chili plantation soil monitoring via GS3 sensor, XMPP, and PostgreSQL." />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ── Top Navigation Bar ── -->
+<header class="navbar">
+  <div class="navbar-brand">
+    <div class="brand-icon">🌶️</div>
+    <div class="brand-text">
+      <span class="brand-title">Chili Intelligent Monitoring and Environmental Sensing System</span>
+    </div>
+  </div>
+  <div class="navbar-center">
+    <div class="mode-badge demo" id="modeBadge">
+      <span class="mode-dot demo-dot"></span>
+      <span>DEMO</span>
+    </div>
+    <div class="status-pill" id="connStatus">
+      <span class="status-dot pulse"></span>
+      <span>Node esp32-node-01</span>
+    </div>
+  </div>
+  <div class="navbar-right">
+    <div class="time-display" id="clockDisplay">--:--:--</div>
+    <div class="date-display" id="dateDisplay">---</div>
+  </div>
+</header>
+
+<!-- ── Main Dashboard Grid ── -->
+<main class="dashboard">
+
+  <!-- ═══ ROW 1 – Live Metric Cards ═══ -->
+  <section class="metrics-row">
+
+    <!-- Soil Moisture Liquid Gauge -->
+    <div class="glass-card card-moisture float-card" id="cardMoisture">
+      <div class="card-header">
+        <div class="card-label">
+          <span class="card-icon">💧</span>
+          <span>Soil Moisture (VWC)</span>
+        </div>
+        <div class="card-badge optimal" id="moistureBadge">OPTIMAL</div>
+      </div>
+      <div class="gauge-wrap">
+        <div class="liquid-gauge" id="liquidGauge">
+          <div class="liquid-fill" id="liquidFill">
+            <div class="liquid-wave"></div>
+            <div class="liquid-wave wave2"></div>
+          </div>
+          <div class="gauge-value-overlay">
+            <span class="gauge-number" id="vwcValue">0.000</span>
+            <span class="gauge-unit">m³/m³</span>
+          </div>
+        </div>
+      </div>
+      <div class="card-footer">
+        <span>Optimal: 60–80%</span>
+        <span id="vwcPct">-- %</span>
+      </div>
+    </div>
+
+    <!-- Temperature Card -->
+    <div class="glass-card card-temp float-card" id="cardTemp">
+      <div class="card-header">
+        <div class="card-label">
+          <span class="card-icon">🌡️</span>
+          <span>Soil Temperature</span>
+        </div>
+        <div class="card-badge optimal" id="tempBadge">OPTIMAL</div>
+      </div>
+      <div class="big-metric-wrap">
+        <div class="big-metric">
+          <span class="big-number" id="tempValue">--.-</span>
+          <span class="big-unit">°C</span>
+        </div>
+        <div class="radial-ring">
+          <svg viewBox="0 0 120 120" class="ring-svg">
+            <circle cx="60" cy="60" r="52" class="ring-track"/>
+            <circle cx="60" cy="60" r="52" class="ring-fill temp-ring-fill" id="tempArc"
+                    stroke-dasharray="326.73" stroke-dashoffset="326.73"/>
+          </svg>
+        </div>
+      </div>
+      <div class="mini-bar-row">
+        <span>0°C</span>
+        <div class="mini-bar"><div class="mini-bar-fill" id="tempBar"></div></div>
+        <span>50°C</span>
+      </div>
+      <div class="card-footer" style="margin-top:0.5rem;">
+        <span>Optimal: 22°C – 30°C</span>
+        <span id="tempRangeLabel" style="font-weight:500;">--</span>
+      </div>
+    </div>
+
+    <!-- EC Card -->
+    <div class="glass-card card-ec float-card" id="cardEC">
+      <div class="card-header">
+        <div class="card-label">
+          <span class="card-icon">⚡</span>
+          <span>Electrical Conductivity</span>
+        </div>
+        <div class="card-badge optimal" id="ecBadge">OPTIMAL</div>
+      </div>
+      <div class="big-metric-wrap">
+        <div class="big-metric">
+          <span class="big-number" id="ecValue">-.-</span>
+          <span class="big-unit">dS/m</span>
+        </div>
+        <div class="radial-ring">
+          <svg viewBox="0 0 120 120" class="ring-svg">
+            <circle cx="60" cy="60" r="52" class="ring-track"/>
+            <circle cx="60" cy="60" r="52" class="ring-fill ec-ring-fill" id="ecArc"
+                    stroke-dasharray="326.73" stroke-dashoffset="326.73"/>
+          </svg>
+        </div>
+      </div>
+      <div class="mini-bar-row">
+        <span>0</span>
+        <div class="mini-bar"><div class="mini-bar-fill ec-bar-fill" id="ecBar"></div></div>
+        <span>4 dS/m</span>
+      </div>
+      <div class="card-footer" style="margin-top:0.5rem;">
+        <span>Optimal: 0.8–2.0 dS/m</span>
+        <span id="ecRangeLabel" style="font-weight:500;">--</span>
+      </div>
+    </div>
+
+    <!-- System Status Card -->
+    <div class="glass-card card-status float-card" id="cardStatus">
+      <div class="card-header">
+        <div class="card-label">
+          <span class="card-icon">📡</span>
+          <span>System Status</span>
+        </div>
+      </div>
+      <div class="status-list">
+        <div class="status-row">
+          <span class="status-key">XMPP Bridge</span>
+          <span class="status-val online" id="xmppStatus">● Online</span>
+        </div>
+        <div class="status-row">
+          <span class="status-key">PostgreSQL</span>
+          <span class="status-val online" id="dbStatus">● Connected</span>
+        </div>
+        <div class="status-row">
+          <span class="status-key">Sensor Node</span>
+          <span class="status-val online" id="nodeStatus">● Active</span>
+        </div>
+        <div class="status-row">
+          <span class="status-key">WebSocket</span>
+          <span class="status-val offline" id="wsStatus">○ Disconnected</span>
+        </div>
+        <div class="status-row">
+          <span class="status-key">Last Reading</span>
+          <span class="status-val" id="lastReadingTime">--:--:--</span>
+        </div>
+        <div class="status-row">
+          <span class="status-key">Total Readings</span>
+          <span class="status-val" id="totalReadings">0</span>
+        </div>
+      </div>
+      <!-- Irrigation Pump Status -->
+      <div class="pump-badge" id="pumpBadge">💧 PUMP STATUS: STANDBY</div>
+      <div class="alert-banner" id="alertBanner" style="display:none; margin-top:0.65rem;">
+        <span id="alertText"></span>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ═══ ROW 2 – Charts ═══ -->
+  <section class="charts-row">
+
+    <!-- Temperature 24h Chart -->
+    <div class="glass-card chart-card float-card">
+      <div class="chart-header">
+        <div class="card-label">
+          <span class="card-icon">📈</span>
+          <span>Temperature Trend – 24h</span>
+        </div>
+        <div style="display:flex;gap:0.75rem;align-items:center;">
+          <div class="legend-zone">
+            <div class="legend-zone-bar"></div>
+            <span>Optimal Zone</span>
+          </div>
+          <div class="chart-legend">
+            <span class="legend-dot temp-color"></span><span>°C</span>
+          </div>
+        </div>
+      </div>
+      <div class="chart-container">
+        <canvas id="tempChart"></canvas>
+      </div>
+    </div>
+
+    <!-- EC 24h Chart -->
+    <div class="glass-card chart-card float-card">
+      <div class="chart-header">
+        <div class="card-label">
+          <span class="card-icon">⚡</span>
+          <span>EC Trend – 24h</span>
+        </div>
+        <div style="display:flex;gap:0.75rem;align-items:center;">
+          <div class="legend-zone">
+            <div class="legend-zone-bar"></div>
+            <span>Optimal Zone</span>
+          </div>
+          <div class="chart-legend">
+            <span class="legend-dot ec-color"></span><span>dS/m</span>
+          </div>
+        </div>
+      </div>
+      <div class="chart-container">
+        <canvas id="ecChart"></canvas>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ═══ ROW 3 – Moisture History + Alert Log ═══ -->
+  <section class="charts-row">
+
+    <!-- Moisture 24h Area Chart -->
+    <div class="glass-card chart-card float-card">
+      <div class="chart-header">
+        <div class="card-label">
+          <span class="card-icon">💧</span>
+          <span>Moisture Trend – 24h</span>
+        </div>
+        <div style="display:flex;gap:0.75rem;align-items:center;">
+          <div class="legend-zone">
+            <div class="legend-zone-bar" style="background:rgba(193,113,79,0.15);border-color:rgba(193,113,79,0.4);"></div>
+            <span>Target 60–80%</span>
+          </div>
+          <div class="chart-legend">
+            <span class="legend-dot moisture-color"></span><span>VWC m³/m³</span>
+          </div>
+        </div>
+      </div>
+      <div class="chart-container">
+        <canvas id="moistureChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Alert Log -->
+    <div class="glass-card chart-card float-card">
+      <div class="chart-header">
+        <div class="card-label">
+          <span class="card-icon">🔔</span>
+          <span>Event &amp; Alert Log</span>
+        </div>
+        <button class="clear-btn" id="clearAlerts">Clear</button>
+      </div>
+      <div class="alert-log" id="alertLog">
+        <div class="no-alerts">No alerts – plantation conditions nominal 🌿</div>
+      </div>
+    </div>
+
+  </section>
+
+</main>
+
+<footer class="footer">
+  <strong>CIMES</strong> – Chili Intelligent Monitoring and Environmental Sensing System &nbsp;·&nbsp;
+  GS3 Sensor · GPIO 14 (SDI-12) · XMPP → PostgreSQL &nbsp;·&nbsp;
+  <span id="footerMode">Backend: <code>/api/*</code> · Auto-fallback to demo mode</span>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

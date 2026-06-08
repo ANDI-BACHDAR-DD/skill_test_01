@@ -1,0 +1,67 @@
+# ============================================================
+#  CIMES – Docker Compose
+#  Runs PostgreSQL + Backend API in one command
+#
+#  Usage:
+#    docker-compose up -d
+#    Open: http://localhost:8000
+# ============================================================
+
+version: "3.9"
+
+services:
+  # ── PostgreSQL Database ────────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    container_name: cimes-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: chile_iot
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - cimes_pgdata:/var/lib/postgresql/data
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d chile_iot"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # ── CIMES Backend API ──────────────────────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: cimes-api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: chile_iot
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      API_PORT: 8000
+    ports:
+      - "8000:8000"
+
+  # ── pgAdmin ───────────────────────────────────────────────
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: cimes-pgadmin
+    restart: unless-stopped
+    depends_on:
+      - db
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+
+volumes:
+  cimes_pgdata:
